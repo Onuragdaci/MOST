@@ -1,29 +1,17 @@
 !pip install pandas_ta
 !pip install mplcyberpunk
 !pip install git+https://github.com/rongardF/tvdatafeed
+!pip install tradingview-screener
 !pip install backtesting
 import pandas as pd
 import pandas_ta as ta
 import numpy as np
-import ssl
-from urllib import request
 import matplotlib.pyplot as plt
-import mplcyberpunk
 from tvDatafeed import TvDatafeed, Interval
 from backtesting import Backtest, Strategy
+from tradingview_screener import get_all_symbols
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
-tv = TvDatafeed()
-def Hisse_Temel_Veriler():
-    url1="https://www.isyatirim.com.tr/tr-tr/analiz/hisse/Sayfalar/Temel-Degerler-Ve-Oranlar.aspx#page-1"
-    context = ssl._create_unverified_context()
-    response = request.urlopen(url1, context=context)
-    url1 = response.read()
-    df = pd.read_html(url1,decimal=',', thousands='.')                         #Tüm Hisselerin Tablolarını Aktar
-    df=df[6]
-    Hisseler=df['Kod'].values.tolist()
-    return Hisseler
 
 def MOST(data, percent, n1):
     df = data.copy()  # Working with a copy to avoid modifying the original DataFrame
@@ -58,9 +46,10 @@ def MOST(data, percent, n1):
     df['Exit'] = df['trend']==-1
     return df
 
-#Hisse isimlerinin çağırılması ve bastırılması
-Hisseler=Hisse_Temel_Veriler()
-print(Hisseler)
+tv = TvDatafeed()
+Hisseler = get_all_symbols(market='turkey')
+Hisseler = [symbol.replace('BIST:', '') for symbol in Hisseler]
+Hisseler = sorted(Hisseler)
 
 #Raporlama için kullanılacak başlıklar
 Titles = ['Hisse Adı', 'Son Fiyat','MOST Değeri' ,'Kazanma Oranı','Giriş Sinyali', 'Çıkış Sinyali']
